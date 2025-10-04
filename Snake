@@ -1,0 +1,76 @@
+import pygame
+import random
+
+Window = (720, 480)
+
+screen = pygame.display.set_mode(Window)
+
+Raw = 25
+Mar = Window[0] // Raw, Window[1] // Raw
+
+start = Mar[0] // 2, Mar[1] // 2
+snake = [start]
+live = True
+
+directoin = 0
+directoins = [(1, 0), (0, 1), (-1, 0), (0, -1)]
+
+apple = random.randint(0, Mar[0]-1),  random.randint(0, Mar[1]-1)
+
+fps = 5
+clock = pygame.time.Clock()
+
+pygame.font.init()
+font_score = pygame.font.SysFont("Calibri", 25)
+font_gameover = pygame.font.SysFont("Calibri", 45)
+font_space = pygame.font.SysFont("Calibri", 20)
+
+run = True
+while run:
+    clock.tick(fps)
+    screen.fill("White")
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            run = False
+        if event.type == pygame.KEYDOWN:
+            if live: 
+                if event.key == pygame.K_RIGHT and directoin != 2:
+                    directoin = 0
+                if event.key == pygame.K_DOWN and directoin != 3:
+                    directoin = 1
+                if event.key == pygame.K_LEFT and directoin != 0:
+                    directoin = 2
+                if event.key == pygame.K_UP and directoin != 1:
+                    directoin = 3
+            else:
+                if event.key == pygame.K_SPACE:
+                    live = True
+                    snake = [start]
+                    apple = random.randint(0, Mar[0]-1),  random.randint(0, Mar[1]-1)
+                    fps = 5
+            
+
+
+    [pygame.draw.rect(screen, "LimeGreen", (x * Raw, y * Raw, Raw - 1, Raw - 1)) for x, y in snake]
+    pygame.draw.rect(screen, "red", (apple[0] * Raw, apple[1] * Raw, Raw - 1, Raw - 1))
+
+    if live:
+        pos = snake [0][0] + directoins[directoin][0], snake [0][1] + directoins[directoin][1]
+        if not (0 <= pos[0] < Mar[0] and 0 <= pos[1] < Mar[0]) or \
+        pos in snake:
+            live = False
+        else:
+            snake.insert(0, pos)
+            if pos == apple:
+                fps += 1
+                apple = random.randint(0, Mar[0]),  random.randint(0, Mar[1])
+            else:
+                snake.pop(-1)
+    else:
+        text = font_gameover.render(f"GAME OVER", True, "Black")
+        screen.blit(text, (Window[0] // 2 - text.get_width()//2, Window[1] // 2 - 50))
+        text = font_space.render(f"Press SPACE for restart", True, "Black")
+        screen.blit(text, (Window[0] // 2 - text.get_width() // 2, Window[1] // 2 + 10))
+    screen.blit(font_score.render(f"Score: {len(snake)}", True, "Blue"), (5, 5))
+
+    pygame.display.flip()
